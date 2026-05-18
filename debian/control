@@ -1,0 +1,13 @@
+Source: hyprscreend
+Section: misc
+Priority: optional
+Maintainer: Uri Herrera <uri_herrera@nxos.org>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: http://nxos.org
+
+
+Package: hyprscreend
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, hyrpland, jq
+Description: A set of daemons that change the screen refresh rate based on the power source.

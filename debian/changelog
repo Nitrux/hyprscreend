@@ -1,0 +1,14 @@
+hyprscreend (0.0.2)  nitrux; urgency=medium
+
+  * Fix external monitor matching in hyprextscreend to use exact output names
+    instead of regex substring matching.
+  * Skip Crystal Dock restart in greetd/greeter sessions to avoid launching it
+    in the login Hyprland instance.
+
+ -- Uri Herrera <uri_herrera@nxos.org>  Mon, 18 May 2026 00:10:00 -0500
+
+hyprscreend (0.0.1)  nitrux; urgency=medium
+
+  * Create package.
+
+ -- Uri Herrera <uri_herrera@nxos.org>  Sun, 17 May 2026 22:32:00 -0500
