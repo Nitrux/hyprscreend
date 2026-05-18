@@ -9,5 +9,5 @@ Homepage: http://nxos.org
 
 Package: hyprscreend
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, hyrpland, jq
+Depends: ${shlibs:Depends}, ${misc:Depends}, hyprland, jq
 Description: A set of daemons that change the screen refresh rate based on the power source.
