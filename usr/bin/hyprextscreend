@@ -162,9 +162,31 @@ upsert_external_below_edp1() {
     release_lock
     return 0
   fi
+
+  # Preserve any position the user has already set for this monitor.
+  existing_pos="$(awk -v mon="$mon" '
+    BEGIN { in_block=0; out=""; pos="" }
+    {
+      if (in_block) {
+        if ($0 ~ /^[ \t]*output[ \t]*=[ \t]*"[^"]*"[ \t]*,?[ \t]*$/) {
+          t=$0; sub(/^[^"]*"/, "", t); sub(/".*$/, "", t); out=t
+        } else if ($0 ~ /^[ \t]*position[ \t]*=[ \t]*"[^"]*"[ \t]*,?[ \t]*$/) {
+          t=$0; sub(/^[^"]*"/, "", t); sub(/".*$/, "", t); pos=t
+        }
+        if ($0 ~ /^[ \t]*\}\)[ \t]*,?[ \t]*$/) {
+          if (out == mon && pos != "") { print pos; exit }
+          in_block=0; out=""; pos=""
+        }
+        next
+      }
+      if ($0 ~ /^[ \t]*hl\.monitor\(\{[ \t]*$/) { in_block=1; out=""; pos="" }
+    }
+  ' "$HYPR_CONFIG")"
+  pos_to_use="${existing_pos:-auto}"
+
   if awk -v mon="$mon" -v mode="$mode_str" -v scale="$scale" '
     function flush_block(    s_ok) {
-      if (out == mon && pos == "auto" && md == mode) {
+      if (out == mon && pos != "" && md == mode) {
         s_ok = (sc != "" && (sc + 0) == (scale + 0))
         if (s_ok) found = 1
       }
@@ -223,12 +245,12 @@ upsert_external_below_edp1() {
   fi
 
   tmp="$(mktemp)"
-  awk -v edp="eDP-1" -v mon="$mon" -v mode="$mode_str" -v scale="$scale" '
+  awk -v edp="eDP-1" -v mon="$mon" -v mode="$mode_str" -v scale="$scale" -v posval="$pos_to_use" '
     function print_new_block() {
       print "hl.monitor({"
       print "    output = \"" mon "\","
       print "    mode = \"" mode "\","
-      print "    position = \"auto\","
+      print "    position = \"" posval "\","
       print "    scale = " scale ","
       print "})"
     }

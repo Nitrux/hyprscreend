@@ -1,3 +1,13 @@
+hyprscreend (0.0.3)  nitrux; urgency=medium
+
+  * Preserve the user's existing monitor position in hyprextscreend instead of
+    always rewriting it as "auto", which clobbered manually set positions on
+    every login.
+  * Relax the up-to-date check so a monitor block with any non-empty position
+    (not just "auto") is considered already configured and is not rewritten.
+
+ -- Uri Herrera <uri_herrera@nxos.org>  Sat, 23 May 2026 12:00:00 -0500
+
 hyprscreend (0.0.2)  nitrux; urgency=medium
 
   * Fix external monitor matching in hyprextscreend to use exact output names
