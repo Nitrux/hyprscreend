@@ -329,9 +329,26 @@ list_connected_externals() {
   '
 }
 
+wait_for_monitor_modes() {
+  mon="$1"
+  tries=50
+  while :; do
+    if [ -n "$(pick_mode_for_monitor "$mon" hi || true)" ]; then
+      return 0
+    fi
+    tries=$((tries-1))
+    [ "$tries" -le 0 ] && {
+      log "WARN" "External monitor $mon modes not available yet"
+      return 1
+    }
+    sleep 0.2
+  done
+}
+
 handle_new_external() {
   mon="$1"
   local scale
+  wait_for_monitor_modes "$mon" || true
   scale="$(compute_scale "$mon")"
   m60="$(pick_mode_fixed_hz "$mon" 60 || true)"
   if [ -n "$m60" ]; then

@@ -1,3 +1,14 @@
+hyprscreend (0.0.4)  nitrux; urgency=medium
+
+  * Wait for the internal monitor to appear before applying the initial
+    refresh mode in hyprscreend, so first-login battery sessions do not miss
+    the low-refresh configuration.
+  * Wait briefly for external monitor mode data before configuring a newly
+    detected output in hyprextscreend, so first-login races do not skip the
+    initial external display setup.
+
+ -- Uri Herrera <uri_herrera@nxos.org>  Wed, 24 Jun 2026 00:00:00 -0500
+
 hyprscreend (0.0.3)  nitrux; urgency=medium
 
   * Preserve the user's existing monitor position in hyprextscreend instead of

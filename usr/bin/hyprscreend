@@ -319,6 +319,40 @@ upower_state() {
   esac
 }
 
+internal_screen_ready() {
+  hyprctl monitors -j 2>/dev/null | jq -e --arg name "$INTERNAL_SCREEN" '
+    any(.[]; .name == $name)
+  ' >/dev/null 2>&1
+}
+
+apply_state() {
+  case "$1" in
+    ac) apply_ac ;;
+    battery) apply_battery ;;
+    *) return 1 ;;
+  esac
+}
+
+apply_state_with_retry() {
+  state="$1"
+  tries=50
+  while :; do
+    if apply_state "$state"; then
+      return 0
+    fi
+    internal_screen_ready || {
+      tries=$((tries-1))
+      [ "$tries" -le 0 ] && {
+        log "WARN" "Internal monitor $INTERNAL_SCREEN not available yet"
+        return 1
+      }
+      sleep 0.2
+      continue
+    }
+    return 1
+  done
+}
+
 current_state() {
   s="$(sysfs_state)"
   [ "$s" != "unknown" ] && { echo "$s"; return; }
@@ -338,22 +372,13 @@ wait_for_state() {
   done
 }
 
-apply_state() {
-  case "$1" in
-    ac) apply_ac ;;
-    battery) apply_battery ;;
-    *) return 1 ;;
-  esac
-}
-
-
 # -- Change refresh rate of internal screen depending on the power source.
 
 (
   log "INFO" "Starting Hyprland screen refresh rate daemon"
 
   state="$(wait_for_state)"
-  apply_state "$state" || true
+  apply_state_with_retry "$state" || true
   upower --monitor-detail | while IFS= read -r line;
   do
     case "$line" in
@@ -363,6 +388,6 @@ apply_state() {
     esac
     [ "$new" = "$state" ] && continue
     state="$new"
-    apply_state "$state" || true
+    apply_state_with_retry "$state" || true
   done
 ) &
