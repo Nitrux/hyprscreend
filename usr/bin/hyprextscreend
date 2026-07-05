@@ -28,6 +28,7 @@ load_config() {
   . "$CONFIG_FILE"
 
   : "${HYPR_CONFIG:?Required variable HYPR_CONFIG is not set in config file.}"
+  : "${INTERNAL_SCREEN:?Required variable INTERNAL_SCREEN is not set in config file.}"
   : "${EXTERNAL_SCREEN:?Required variable EXTERNAL_SCREEN is not set in config file.}"
   : "${SCALE_FACTOR:?Required variable SCALE_FACTOR is not set in config file.}"
   : "${LOCKFILE:?Required variable LOCKFILE is not set in config file.}"
@@ -158,7 +159,7 @@ upsert_external_below_edp1() {
   mon="$1"
   mode_str="$2"
   scale="$3"
-  if [ "$mon" = "eDP-1" ]; then
+  if [ "$mon" = "$INTERNAL_SCREEN" ]; then
     release_lock
     return 0
   fi
@@ -206,17 +207,17 @@ upsert_external_below_edp1() {
     }
     {
       if (in_block) {
-        if ($0 ~ /^[ \t]*output[ \t]*=[ \t]*\"[^\"]*\"[ \t]*,?[ \t]*$/) {
+        if ($0 ~ /^[ \t]*output[ \t]*=[ \t]*"[^"]*"[ \t]*,?[ \t]*$/) {
           t = $0
           sub(/^[^"]*"/, "", t)
           sub(/".*$/, "", t)
           out = t
-        } else if ($0 ~ /^[ \t]*mode[ \t]*=[ \t]*\"[^\"]*\"[ \t]*,?[ \t]*$/) {
+        } else if ($0 ~ /^[ \t]*mode[ \t]*=[ \t]*"[^"]*"[ \t]*,?[ \t]*$/) {
           t = $0
           sub(/^[^"]*"/, "", t)
           sub(/".*$/, "", t)
           md = t
-        } else if ($0 ~ /^[ \t]*position[ \t]*=[ \t]*\"[^\"]*\"[ \t]*,?[ \t]*$/) {
+        } else if ($0 ~ /^[ \t]*position[ \t]*=[ \t]*"[^"]*"[ \t]*,?[ \t]*$/) {
           t = $0
           sub(/^[^"]*"/, "", t)
           sub(/".*$/, "", t)
@@ -245,7 +246,7 @@ upsert_external_below_edp1() {
   fi
 
   tmp="$(mktemp)"
-  awk -v edp="eDP-1" -v mon="$mon" -v mode="$mode_str" -v scale="$scale" -v posval="$pos_to_use" '
+  awk -v internal="$INTERNAL_SCREEN" -v mon="$mon" -v mode="$mode_str" -v scale="$scale" -v posval="$pos_to_use" '
     function print_new_block() {
       print "hl.monitor({"
       print "    output = \"" mon "\","
@@ -259,7 +260,7 @@ upsert_external_below_edp1() {
         dropped_target = 1
       } else {
         for (i = 1; i <= blen; i++) print blk[i]
-        if (out == edp && !inserted) {
+        if (out == internal && !inserted) {
           print_new_block()
           inserted = 1
         }
@@ -278,7 +279,7 @@ upsert_external_below_edp1() {
     {
       if (in_block) {
         blk[++blen] = $0
-        if ($0 ~ /^[ \t]*output[ \t]*=[ \t]*\"[^\"]*\"[ \t]*,?[ \t]*$/) {
+        if ($0 ~ /^[ \t]*output[ \t]*=[ \t]*"[^"]*"[ \t]*,?[ \t]*$/) {
           t = $0
           sub(/^[^"]*"/, "", t)
           sub(/".*$/, "", t)
@@ -322,10 +323,10 @@ restart_crystal_dock() {
 }
 
 list_connected_externals() {
-  hyprctl monitors -j 2>/dev/null | jq -r --arg list "$EXTERNAL_SCREEN" '
-    ($list | split(" ") | map(select(length > 0))) as $allowed
-    | map(.name) | .[]
-    | select(. as $name | $allowed | index($name))
+  hyprctl monitors -j 2>/dev/null | jq -r --arg internal "$INTERNAL_SCREEN" '
+    map(.name)
+    | map(select(. != $internal))
+    | .[]
   '
 }
 

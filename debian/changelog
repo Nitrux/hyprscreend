@@ -1,3 +1,9 @@
+hyprscreend (0.0.5)  nitrux; urgency=medium
+
+  * The external daemon now adds any connected monitor that is not the internal panel, instead of only handling names from the hardcoded external allowlist.
+
+ -- Uri Herrera <uri_herrera@nxos.org>  Sat, 04 Jul 2026 21:44:00 -0500
+
 hyprscreend (0.0.4)  nitrux; urgency=medium
 
   * Wait for the internal monitor to appear before applying the initial
