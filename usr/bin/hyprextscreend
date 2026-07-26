@@ -309,19 +309,6 @@ upsert_external_below_edp1() {
   return 0
 }
 
-restart_crystal_dock() {
-  if [ -n "${GREETD_SOCK:-}" ] || [ "${USER:-}" = "_greetd" ] || [ "${HOME:-}" = "/var/lib/greetd" ] || [ "${XDG_SESSION_CLASS:-}" = "greeter" ]; then
-    log "INFO" "Skipping Crystal Dock restart in greeter session"
-    return 0
-  fi
-
-  if command -v crystal-dock >/dev/null 2>&1; then
-    pkill -x crystal-dock >/dev/null 2>&1 || true
-    nohup crystal-dock >/dev/null 2>&1 &
-    disown || true
-  fi
-}
-
 list_connected_externals() {
   hyprctl monitors -j 2>/dev/null | jq -r --arg internal "$INTERNAL_SCREEN" '
     map(.name)
@@ -355,7 +342,6 @@ handle_new_external() {
   if [ -n "$m60" ]; then
     if upsert_external_below_edp1 "$mon" "$m60" "$scale"; then
       hyprctl reload >/dev/null 2>&1 || true
-      restart_crystal_dock
     fi
   fi
   sleep 0.5
